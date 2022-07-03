@@ -10,9 +10,7 @@ maxlen_data_json = utils.load_max_len_data(model_folder)
 maxlen_questions = maxlen_data_json['maxlen_questions']
 maxlen_answers = maxlen_data_json['maxlen_answers']
 
-enc_model = utils.load_enc_model(model_folder)
-dec_model = utils.load_dec_model(model_folder)
-
+enc_model, dec_model = utils.load_latest_models()
 
 utils.converse(
     convo_length=10,

@@ -7,6 +7,7 @@ import os
 import pickle
 import json
 from constants import dec_model_path, enc_model_path, model_path, tokenizer_path, max_len_data_path
+from pathlib import Path
 
 
 def encode_data(tokenizer, data):
@@ -214,3 +215,19 @@ def load_dec_model(folder_name):
 
 def load_max_len_data(folder_name):
     return load_json(folder_name + max_len_data_path)
+
+
+def get_latest_model_folder():
+    paths = sorted(Path("models").iterdir(), key=os.path.getmtime)
+    print(paths)
+    if paths[len(paths) - 1]:
+        folder = paths[len(paths) - 1]
+        print(folder.name)
+        return "models/" + folder.name + "/"
+
+
+def load_latest_models():
+    folder = get_latest_model_folder()
+    enc_model = load_enc_model(folder)
+    dec_model = load_dec_model(folder)
+    return enc_model, dec_model
