@@ -12,7 +12,8 @@ from constants import dec_model_path, enc_model_path, model_path, tokenizer_path
 def encode_data(tokenizer, data):
     tokenized_data = tokenizer.texts_to_sequences(data)
     maxlen = max([len(x) for x in tokenized_data])
-    padded_data = preprocessing.sequence.pad_sequences(tokenized_data, maxlen=maxlen, padding='post')
+    padded_data = preprocessing.sequence.pad_sequences(
+        tokenized_data, maxlen=maxlen, padding='post')
     encoder_input_data = np.array(padded_data)
     return tokenized_data, encoder_input_data, maxlen
 
@@ -31,17 +32,21 @@ def tokenize(sentences):
 
 def get_encoder_layers(VOCAB_SIZE, maxlen_questions):
     encoder_inputs = layers.Input(shape=(maxlen_questions,))
-    encoder_embedding = layers.Embedding(VOCAB_SIZE, 200, mask_zero=True)(encoder_inputs)
-    encoder_outputs, state_h, state_c = layers.LSTM(200, return_state=True)(encoder_embedding)
+    encoder_embedding = layers.Embedding(
+        VOCAB_SIZE, 200, mask_zero=True)(encoder_inputs)
+    encoder_outputs, state_h, state_c = layers.LSTM(
+        200, return_state=True)(encoder_embedding)
     encoder_states = [state_h, state_c]
     return encoder_inputs, encoder_embedding, encoder_outputs, encoder_states, state_h, state_c
 
 
 def get_decoder_layers(VOCAB_SIZE, maxlen_answers, encoder_states):
     decoder_inputs = layers.Input(shape=(maxlen_answers, ))
-    decoder_embedding = layers.Embedding(VOCAB_SIZE, 200, mask_zero=True)(decoder_inputs)
+    decoder_embedding = layers.Embedding(
+        VOCAB_SIZE, 200, mask_zero=True)(decoder_inputs)
     decoder_lstm = layers.LSTM(200, return_state=True, return_sequences=True)
-    decoder_outputs, _, _ = decoder_lstm(decoder_embedding, initial_state=encoder_states)
+    decoder_outputs, _, _ = decoder_lstm(
+        decoder_embedding, initial_state=encoder_states)
     decoder_dense = layers.Dense(VOCAB_SIZE, activation=activations.softmax)
     output = decoder_dense(decoder_outputs)
     return decoder_inputs, decoder_embedding, decoder_lstm, decoder_outputs, decoder_dense, output
@@ -55,13 +60,15 @@ def make_inference_models(encoder_inputs, decoder_lstm, decoder_embedding, encod
 
     decoder_states_inputs = [decoder_state_input_c, decoder_state_input_h]
 
-    decoder_outputs, state_h, state_c = decoder_lstm(decoder_embedding, initial_state=decoder_states_inputs)
+    decoder_outputs, state_h, state_c = decoder_lstm(
+        decoder_embedding, initial_state=decoder_states_inputs)
 
     decoder_states = [state_h, state_c]
 
     decoder_outputs = decoder_dense(decoder_outputs)
 
-    decoder_model = models.Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
+    decoder_model = models.Model(
+        [decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
     return encoder_model, decoder_model
 
@@ -125,7 +132,8 @@ def str_to_tokens(sentence: str, tokenizer, maxlen_questions):
 def converse(convo_length, enc_model, dec_model, maxlen_answers, maxlen_questions, tokenizer):
     for _ in range(convo_length):
         question = input('Enter question : ')
-        states_values = enc_model.predict(str_to_tokens(question, tokenizer, maxlen_questions))
+        states_values = enc_model.predict(
+            str_to_tokens(question, tokenizer, maxlen_questions))
         empty_target_seq = np.zeros((1, 1))
         empty_target_seq[0, 0] = tokenizer.word_index['start']
         stop_condition = False
@@ -180,11 +188,13 @@ def newVersionFolder():
     return "models/" + folder_name
 
 
-def save_models(model, enc_model, dec_model):
+def save_models(model, enc_model, dec_model, tokenizer):
     folder_name = newVersionFolder()
-    model.save(folder_name + '/' + model_path)
-    enc_model.save(folder_name + '/' + enc_model_path)
-    dec_model.save(folder_name + '/' + dec_model_path)
+    save_path = folder_name + "/"
+    model.save(save_path + model_path)
+    enc_model.save(save_path + enc_model_path)
+    dec_model.save(save_path + dec_model_path)
+    save_tokenizer(tokenizer, save_path + tokenizer_path)
 
 # converter = tf.lite.TFLiteConverter.from_keras_model(enc_model)
 # buffer = converter.convert()
