@@ -5,20 +5,27 @@ import utils as my_utils
 from constants import data_path, EPOCHS, BATCH_SIZE
 
 
-tokenizer, VOCAB_SIZE, vocab, questions, answers = my_utils.load_data(data_path)
+tokenizer, VOCAB_SIZE, vocab, questions, answers = my_utils.load_data(
+    data_path)
 
 
 # encoder input data
-tokenized_questions, encoder_input_data, maxlen_questions = my_utils.encode_data(tokenizer, questions)
+tokenized_questions, encoder_input_data, maxlen_questions = my_utils.encode_data(
+    tokenizer, questions)
 
 # decoder input data
-tokenized_answers, decoder_input_data, maxlen_answers = my_utils.encode_data(tokenizer, answers)
+tokenized_answers, decoder_input_data, maxlen_answers = my_utils.encode_data(
+    tokenizer, answers)
 
 # decoder output data
 for i in range(len(tokenized_answers)):
     tokenized_answers[i] = tokenized_answers[i][1:]
-padded_answers = preprocessing.sequence.pad_sequences(tokenized_answers, maxlen=maxlen_answers, padding='post')
+
+padded_answers = preprocessing.sequence.pad_sequences(
+    tokenized_answers, maxlen=maxlen_answers, padding='post')
+
 onhot_answers = to_categorical(padded_answers, VOCAB_SIZE)
+
 decoder_output_data = np.array(onhot_answers)
 
 
@@ -29,13 +36,15 @@ encoder_inputs, encoder_embedding, encoder_outputs, encoder_states, state_h, sta
 decoder_inputs, decoder_embedding, decoder_lstm, decoder_outputs, decoder_dense, output = my_utils.get_decoder_layers(
     VOCAB_SIZE, maxlen_answers, encoder_states)
 
+
 model = models.Model([encoder_inputs, decoder_inputs], output)
 
 model.compile(optimizer=optimizers.RMSprop(), loss='categorical_crossentropy')
 
 model.summary()
 
-model.fit([encoder_input_data, decoder_input_data], decoder_output_data, batch_size=BATCH_SIZE, epochs=EPOCHS)
+model.fit([encoder_input_data, decoder_input_data],
+          decoder_output_data, batch_size=BATCH_SIZE, epochs=EPOCHS)
 
 enc_model, dec_model = my_utils.make_inference_models(
     encoder_inputs=encoder_inputs,
@@ -47,4 +56,5 @@ enc_model, dec_model = my_utils.make_inference_models(
 )
 
 
-my_utils.save_models(model, enc_model, dec_model)
+my_utils.save_models(model, enc_model, dec_model, tokenizer,
+                     maxlen_questions, maxlen_answers)

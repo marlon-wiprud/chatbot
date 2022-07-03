@@ -7,3 +7,5 @@ enc_model_path = 'enc_model.h5'
 dec_model_path = 'dec_model.h5'
 model_path = "model.h5"
 data_path = 'data'
+MAXLEN_QUESTIONS = "maxlen_questions"
+MAXLEN_ANSWERS = "maxlen_answers"
