@@ -1,5 +1,5 @@
 BATCH_SIZE = 50
-EPOCHS = 1
+EPOCHS = 150
 
 tokenizer_path = 'tokenizer.pickle'
 max_len_data_path = 'maxlen_data'
