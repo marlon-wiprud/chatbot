@@ -6,7 +6,7 @@ import yaml
 import os
 import pickle
 import json
-from constants import dec_model_path, enc_model_path, model_path, tokenizer_path, max_len_data_path
+from constants import dec_model_path, enc_model_path, model_path, tokenizer_path, max_len_data_path, MAXLEN_ANSWERS, MAXLEN_QUESTIONS
 from pathlib import Path
 
 
@@ -164,8 +164,8 @@ def save_tokenizer(tokenizer, path):
         pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def load_tokenizer():
-    with open("og_model/" + tokenizer_path, 'rb') as handle:
+def load_tokenizer(folder):
+    with open(folder + tokenizer_path, 'rb') as handle:
         return pickle.load(handle)
 
 
@@ -189,13 +189,19 @@ def newVersionFolder():
     return "models/" + folder_name
 
 
-def save_models(model, enc_model, dec_model, tokenizer):
+def save_models(model, enc_model, dec_model, tokenizer, maxlen_questions, maxlen_answers):
+    maxlen = {
+        'maxlen_questions': maxlen_questions,
+        'maxlen_answers': maxlen_answers
+    }
+
     folder_name = newVersionFolder()
     save_path = folder_name + "/"
     model.save(save_path + model_path)
     enc_model.save(save_path + enc_model_path)
     dec_model.save(save_path + dec_model_path)
     save_tokenizer(tokenizer, save_path + tokenizer_path)
+    save_json(json.dumps(maxlen), save_path + max_len_data_path)
 
 # converter = tf.lite.TFLiteConverter.from_keras_model(enc_model)
 # buffer = converter.convert()
@@ -214,7 +220,8 @@ def load_dec_model(folder_name):
 
 
 def load_max_len_data(folder_name):
-    return load_json(folder_name + max_len_data_path)
+    data = load_json(folder_name + max_len_data_path)
+    return json.loads(data)
 
 
 def get_latest_model_folder():
@@ -230,4 +237,6 @@ def load_latest_models():
     folder = get_latest_model_folder()
     enc_model = load_enc_model(folder)
     dec_model = load_dec_model(folder)
-    return enc_model, dec_model
+    tokenizer = load_tokenizer(folder)
+    maxlen = load_max_len_data(folder)
+    return enc_model, dec_model, tokenizer, maxlen
