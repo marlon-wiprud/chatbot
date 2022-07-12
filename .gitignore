@@ -163,3 +163,4 @@ models
 og_model
 data
 .vscode
+.DS_Store
