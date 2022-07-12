@@ -10,3 +10,7 @@ Train:
 
 Chat:
 `python3 ./src/chat.py`
+
+Ideas:
+https://betterprogramming.pub/hands-on-augmentation-of-natural-language-dataset-using-paraphrase-database-5f4dfcd23141
+https://www.kaggle.com/datasets/projjal1/human-conversation-training-data

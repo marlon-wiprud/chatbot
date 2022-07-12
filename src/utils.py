@@ -67,6 +67,54 @@ def make_inference_models(encoder_inputs, decoder_lstm, decoder_embedding, encod
     return encoder_model, decoder_model
 
 
+def load_data_v2(dir_path):
+
+    files_list = os.listdir(dir_path + os.sep)
+
+    questions = list()
+    answers = list()
+
+    for filepath in files_list:
+        stream = open(dir_path + os.sep + filepath, 'rb')
+        docs = yaml.safe_load(stream)
+        conversations = docs['conversations']
+
+        for con in conversations:
+            if len(con) > 1:
+                replies = con[1:]
+                for reply in replies:
+                    if type(reply) == str:
+                        questions.append(con[0])
+                        answers.append(reply)
+
+    return questions, format_answers(answers)
+
+
+# add start and stop tokens to answers
+def format_answers(answers):
+    output = list()
+    for i in range(len(answers)):
+        print('type => ', type(answers[i]), answers[i])
+        formatted = '<START> ' + answers[i] + ' <END>'
+        output.append(formatted)
+    return output
+
+
+def tokenize_data(questions, answers):
+    tokenizer = preprocessing.text.Tokenizer()
+
+    tokenizer.fit_on_texts(questions + answers)
+
+    vocab_size = len(tokenizer.word_index) + 1
+
+    vocab = []
+
+    for word in tokenizer.word_index:
+        vocab.append(word)
+
+    return tokenizer, vocab, vocab_size
+
+
 def load_data(dir_path):
 
     files_list = os.listdir(dir_path + os.sep)
@@ -85,6 +133,7 @@ def load_data(dir_path):
                 ans = ''
                 for rep in replies:
                     ans += ' ' + rep
+                # print('ans => ', ans)
                 answers.append(ans)
             elif len(con) > 1:
                 questions.append(con[0])
@@ -99,7 +148,9 @@ def load_data(dir_path):
 
     answers = list()
     for i in range(len(answers_with_tags)):
-        answers.append('<START> ' + answers_with_tags[i] + ' <END>')
+        new_sent = '<START> ' + answers_with_tags[i] + ' <END>'
+        print('new sent => ', new_sent)
+        answers.append(new_sent)
 
     tokenizer = preprocessing.text.Tokenizer()
 
@@ -140,6 +191,8 @@ def converse(convo_length, enc_model, dec_model, maxlen_answers, maxlen_question
                 if sampled_word_index == index:
                     decoded_translation += ' {}'.format(word)
                     sampled_word = word
+
+            print("word: ", sampled_word)
 
             if sampled_word == 'end' or len(decoded_translation.split()) > maxlen_answers:
                 stop_condition = True

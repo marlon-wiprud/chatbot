@@ -4,8 +4,13 @@ from keras.utils.np_utils import to_categorical
 import utils as my_utils
 from constants import data_path, EPOCHS, BATCH_SIZE
 
+questions, answers = my_utils.load_data_v2(data_path)
 
-tokenizer, VOCAB_SIZE, vocab, questions, answers = my_utils.load_data(data_path)
+tokenizer, vocab, VOCAB_SIZE = my_utils.tokenize_data(questions, answers)
+
+# print("answers: ", answers)
+
+# tokenizer, VOCAB_SIZE, vocab, questions, answers = my_utils.load_data(data_path)
 
 
 # encoder input data
@@ -18,8 +23,8 @@ tokenized_answers, decoder_input_data, maxlen_answers = my_utils.encode_data(tok
 for i in range(len(tokenized_answers)):
     tokenized_answers[i] = tokenized_answers[i][1:]
 padded_answers = preprocessing.sequence.pad_sequences(tokenized_answers, maxlen=maxlen_answers, padding='post')
-onhot_answers = to_categorical(padded_answers, VOCAB_SIZE)
-decoder_output_data = np.array(onhot_answers)
+one_hot_answers = to_categorical(padded_answers, VOCAB_SIZE)
+decoder_output_data = np.array(one_hot_answers)
 
 
 encoder_inputs, encoder_embedding, encoder_outputs, encoder_states, state_h, state_c = my_utils.get_encoder_layers(
