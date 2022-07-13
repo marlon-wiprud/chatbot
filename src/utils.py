@@ -200,8 +200,6 @@ def converse(convo_length, enc_model, dec_model, maxlen_answers, maxlen_question
                     decoded_translation += ' {}'.format(word)
                     sampled_word = word
 
-            print("word: ", sampled_word)
-
             if sampled_word == 'end' or len(decoded_translation.split()) > maxlen_answers:
                 stop_condition = True
 
@@ -288,6 +286,7 @@ def get_latest_model_folder():
 
 def load_latest_models():
     folder = get_latest_model_folder()
+    print("loading models ", folder)
     enc_model = load_enc_model(folder)
     dec_model = load_dec_model(folder)
     tokenizer = load_tokenizer(folder)
