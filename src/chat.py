@@ -10,7 +10,6 @@ maxlen_questions = maxlen['maxlen_questions']
 maxlen_answers = maxlen['maxlen_answers']
 
 utils.converse(
-    convo_length=10,
     enc_model=enc_model,
     dec_model=dec_model,
     maxlen_answers=maxlen_answers,

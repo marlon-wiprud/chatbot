@@ -181,32 +181,43 @@ def str_to_tokens(sentence: str, tokenizer, maxlen_questions):
     return preprocessing.sequence.pad_sequences([tokens_list], maxlen=maxlen_questions, padding='post')
 
 
-def converse(convo_length, enc_model, dec_model, maxlen_answers, maxlen_questions, tokenizer):
-    for _ in range(convo_length):
-        question = input('Enter question : ')
-        states_values = enc_model.predict(
-            str_to_tokens(question, tokenizer, maxlen_questions))
+def get_response(question, enc_model, dec_model, maxlen_answers, maxlen_questions, tokenizer):
+    states_values = enc_model.predict(
+        str_to_tokens(question, tokenizer, maxlen_questions))
+
+    empty_target_seq = np.zeros((1, 1))
+    empty_target_seq[0, 0] = tokenizer.word_index['start']
+    stop_condition = False
+    decoded_translation = ''
+
+    while not stop_condition:
+        x = [empty_target_seq] + states_values
+        dec_outputs, h, c = dec_model.predict(x)
+        sampled_word_index = np.argmax(dec_outputs[0, -1, :])
+        sampled_word = None
+
+        for word, index in tokenizer.word_index.items():
+
+            if sampled_word_index == index:
+
+                sampled_word = word
+                if sampled_word == 'end':
+                    stop_condition = True
+                    break
+
+                decoded_translation += ' {}'.format(word)
+
         empty_target_seq = np.zeros((1, 1))
-        empty_target_seq[0, 0] = tokenizer.word_index['start']
-        stop_condition = False
-        decoded_translation = ''
-        while not stop_condition:
-            x = [empty_target_seq] + states_values
-            dec_outputs, h, c = dec_model.predict(x)
-            sampled_word_index = np.argmax(dec_outputs[0, -1, :])
-            sampled_word = None
-            for word, index in tokenizer.word_index.items():
-                if sampled_word_index == index:
-                    decoded_translation += ' {}'.format(word)
-                    sampled_word = word
+        empty_target_seq[0, 0] = sampled_word_index
+        states_values = [h, c]
 
-            if sampled_word == 'end' or len(decoded_translation.split()) > maxlen_answers:
-                stop_condition = True
+    return decoded_translation
 
-            empty_target_seq = np.zeros((1, 1))
-            empty_target_seq[0, 0] = sampled_word_index
-            states_values = [h, c]
 
+def converse(enc_model, dec_model, maxlen_answers, maxlen_questions, tokenizer):
+    while True:
+        question = input('Enter question : ')
+        decoded_translation = get_response(question, enc_model, dec_model, maxlen_answers, maxlen_questions, tokenizer)
         print('response: ', decoded_translation)
 
 
